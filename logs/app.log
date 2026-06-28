@@ -1,0 +1,130 @@
+2026-06-27 11:48:54 | ERROR | UNHANDLED_EXCEPTION
+Traceback (most recent call last):
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\http\client.py", line 1430, in getresponse
+    response.begin()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\http\client.py", line 331, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\http\client.py", line 300, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+http.client.RemoteDisconnected: Remote end closed connection without response
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\requests\adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connectionpool.py", line 842, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\util\retry.py", line 498, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\util\util.py", line 38, in reraise
+    raise value.with_traceback(tb)
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connectionpool.py", line 788, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connectionpool.py", line 534, in _make_request
+    response = conn.getresponse()
+               ^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\urllib3\connection.py", line 571, in getresponse
+    httplib_response = super().getresponse()
+                       ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\http\client.py", line 1430, in getresponse
+    response.begin()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\http\client.py", line 331, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0\Lib\http\client.py", line 300, in _read_status
+    raise RemoteDisconnected("Remote end closed connection without"
+urllib3.exceptions.ProtocolError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "T:\Saloon Ai Bot\main.py", line 81, in webhook
+    handle_message(user_number, user_message)
+  File "T:\Saloon Ai Bot\salon_flow.py", line 33, in handle_message
+    if is_admin(user_number):
+       ^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\admin_service.py", line 37, in is_admin
+    admin = get_admin_info(phone_number)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\admin_service.py", line 17, in get_admin_info
+    sheet = get_sheet("Admins")
+            ^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\google_sheets.py", line 34, in get_sheet
+    worksheet = spreadsheet.worksheet(sheet_name)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\gspread\spreadsheet.py", line 325, in worksheet
+    sheet_data = self.fetch_sheet_metadata()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\gspread\spreadsheet.py", line 230, in fetch_sheet_metadata
+    return self.client.fetch_sheet_metadata(self.id, params=params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\gspread\http_client.py", line 305, in fetch_sheet_metadata
+    r = self.request("get", url, params=params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\gspread\http_client.py", line 114, in request
+    response = self.session.request(
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\google\auth\transport\requests.py", line 543, in request
+    response = super(AuthorizedSession, self).request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\requests\sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\requests\sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "T:\Saloon Ai Bot\venv\Lib\site-packages\requests\adapters.py", line 711, in send
+    raise ConnectionError(err, request=request)
+requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+2026-06-27 11:51:01 | INFO | WALKIN_ADDED | NAME=Walk-In 1 | STYLIST=Ruturaj | TOKEN=3
+2026-06-27 11:51:34 | INFO | CUSTOMER_COMPLETED | PHONE=919373548135 | NAME=Nausheen | STYLIST=Ruturaj | TOKEN=1 | TYPE=ONLINE
+2026-06-27 11:51:34 | INFO | NEXT_CUSTOMER_STARTED | PHONE=919373548125 | NAME=N1 | STYLIST=Ruturaj | TOKEN=2 | TYPE=ONLINE
+2026-06-27 11:51:55 | INFO | CUSTOMER_COMPLETED | PHONE=919373548125 | NAME=N1 | STYLIST=Ruturaj | TOKEN=2 | TYPE=ONLINE
+2026-06-27 11:51:55 | INFO | NEXT_CUSTOMER_STARTED | PHONE=- | NAME=Walk-In 1 | STYLIST=Ruturaj | TOKEN=3 | TYPE=WALKIN
+2026-06-27 11:52:10 | INFO | CUSTOMER_COMPLETED | PHONE=- | NAME=Walk-In 1 | STYLIST=Ruturaj | TOKEN=3 | TYPE=WALKIN
+2026-06-27 12:06:14 | INFO | BOT_STARTED
+2026-06-27 12:10:59 | INFO | BOT_STARTED
+2026-06-27 12:11:59 | INFO | DAILY_REPORT_VIEWED | ADMIN=Ruturaj | ROLE=HEAD_ADMIN | STYLIST=Ruturaj
+2026-06-27 12:14:59 | INFO | QUEUE_CLOSED | ADMIN=Ruturaj | PHONE=918275435461
+2026-06-27 12:15:47 | INFO | QUEUE_OPENED | ADMIN=Ruturaj | PHONE=918275435461
+2026-06-27 12:16:46 | INFO | WALKIN_ADDED | NAME=Walk-In 2 | STYLIST=Ruturaj | TOKEN=4
+2026-06-27 12:17:01 | INFO | BOT_STARTED
+2026-06-27 12:17:37 | INFO | BOT_STARTED
+2026-06-27 12:25:25 | INFO | BOT_STARTED
+2026-06-27 12:26:13 | INFO | BOT_STARTED
+2026-06-27 12:43:50 | INFO | BOT_STARTED
+2026-06-27 12:49:28 | INFO | BOT_STARTED
+2026-06-27 12:51:25 | INFO | BOT_STARTED
+2026-06-27 12:51:43 | INFO | BOT_STARTED
+2026-06-27 12:51:51 | INFO | BOT_STARTED
+2026-06-27 12:57:13 | INFO | BOT_STARTED
+2026-06-27 14:00:13 | INFO | BOT_STARTED
+2026-06-27 14:04:18 | INFO | BOT_STARTED
+2026-06-28 11:39:42 | INFO | BOT_STARTED
+2026-06-28 11:42:13 | INFO | BOT_STARTED
+2026-06-28 12:04:11 | INFO | BOT_STARTED
+2026-06-28 12:05:59 | INFO | BOT_STARTED
+2026-06-28 12:07:55 | INFO | BOT_STARTED
+2026-06-28 12:18:54 | INFO | BOT_STARTED
+2026-06-28 12:19:11 | INFO | BOT_STARTED
+2026-06-28 12:19:22 | INFO | BOT_STARTED
+2026-06-28 12:19:36 | INFO | BOT_STARTED
+2026-06-28 12:19:52 | INFO | BOT_STARTED
+2026-06-28 12:23:09 | INFO | BOT_STARTED
+2026-06-28 12:40:27 | INFO | BOT_STARTED
+2026-06-28 12:41:09 | INFO | BOT_STARTED
