@@ -1,5 +1,5 @@
 from repository.settings_repository import update_setting
-from sync.settings_sync import sync_setting
+# from sync.settings_sync import sync_setting
 
 
 # Update Salon Setting
@@ -7,7 +7,7 @@ def update_salon_setting(key, value):
 
     if update_setting(key, value):
 
-        sync_setting(key, value)
+        # sync_setting(key, value)
 
         return True
 

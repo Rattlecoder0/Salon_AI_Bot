@@ -6,10 +6,6 @@ from repository.queue_repository import (
     complete_next_customer as db_complete_next_customer,
     get_active_queue,get_active_customer, cancel_customer, get_all_customers, get_waiting_queue, is_customer_completed_today, get_total_active_queue_count
 )
-from sync.queue_sync import (
-    sync_new_customer, sync_queue_row, sync_queue_row,
-)
-from sync.settings_sync import sync_all_settings
 
 
 # Check if online joining is allowed
@@ -69,8 +65,6 @@ def join_queue(customer_name, phone_number, stylist, service, customer_type):
         global_token=global_token,
         stylist_token=stylist_token,
     )
-
-    sync_new_customer(db_customer)
 
     return {
         "global_token": global_token,
@@ -194,12 +188,6 @@ def complete_next_customer(stylist):
     # Complete current customer and start next customer
     completed_customer, next_customer = db_complete_next_customer(stylist)
 
-    if completed_customer:
-        sync_queue_row(completed_customer)
-
-    if next_customer:
-        sync_queue_row(next_customer)
-
     # Active queue after update
     active_queue = get_active_queue(stylist)
 
@@ -243,7 +231,7 @@ def open_queue():
 
     if update_setting("QUEUE_STATUS", "OPEN"):
 
-        sync_all_settings()
+        # sync_all_settings()
 
         return True
 
@@ -255,7 +243,7 @@ def close_queue():
 
     if update_setting("QUEUE_STATUS", "CLOSED"):
 
-        sync_all_settings()
+        # sync_all_settings()
 
         return True
 
@@ -272,9 +260,6 @@ def leave_queue(phone_number):
 
     # Update database
     customer = cancel_customer(customer.id)
-
-    # Sync Google Sheet
-    sync_queue_row(customer)
 
     return {
         "phone": customer.phone_number,

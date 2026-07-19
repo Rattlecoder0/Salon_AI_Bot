@@ -3,10 +3,6 @@ from repository.customer_history_repository import (
     add_customer_history,
     update_customer_history,
 )
-from sync.history_sync import (
-    sync_customer_history,
-    sync_new_customer_history,
-)
 
 
 # ====================================
@@ -32,8 +28,6 @@ def update_customer_history_service(
             phone_number,
             stylist,
         )
-        sync_customer_history(customer)
-
         return
     
     customer = add_customer_history(
@@ -41,5 +35,3 @@ def update_customer_history_service(
         customer_name,
         stylist,
     )
-
-    sync_new_customer_history(customer)
