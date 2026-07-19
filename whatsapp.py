@@ -21,8 +21,6 @@ def send_whatsapp_message(to_number, message_text):
         "text": {"body": message_text},
     }
 
-    response = requests.post(url, headers=headers, json=payload)
-
     # print("WhatsApp API Response:")
     # print(response.text)
 
