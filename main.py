@@ -49,10 +49,6 @@ async def webhook(request: Request):
     # WhatsApp se aaya hua data read karte hain
     body = await request.json()
 
-    print("========== WEBHOOK BODY ==========")
-    print(json.dumps(body, indent=2))
-    print("==================================")
-
     user_number = "UNKNOWN"
     user_message = "UNKNOWN"
 
@@ -73,24 +69,12 @@ async def webhook(request: Request):
         # Message ID extract karo
         message_id = body["entry"][0]["changes"][0]["value"]["messages"][0]["id"]
 
-        print("=" * 60)
-        print("MESSAGE ID :", message_id)
-        print("USER       :", user_number)
-        print("TEXT       :", user_message)
-        print("PID        :", os.getpid())
-        print("=" * 60)
-
         # Duplicate webhook ignore karo
         if is_processed(message_id):
-             
-            print("DUPLICATE MESSAGE - IGNORED")
-
             return {"status": "ignored"}
 
         mark_processed(message_id)
 
-        print("MESSAGE MARKED AS PROCESSED")
-        
         # Auto reply
         handle_message(user_number, user_message)
 
