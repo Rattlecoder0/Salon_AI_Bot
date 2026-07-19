@@ -4,3 +4,4 @@ __pycache__/
 .agents/
 database/__pycache__/
 credentials.json
+Production_Checklist.md
