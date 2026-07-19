@@ -3,6 +3,7 @@ from salon_flow import handle_message
 from processed_messages import is_processed, mark_processed
 from logger_config import log_event, logger
 from dotenv import load_dotenv
+import os
 
 app = FastAPI()
 load_dotenv()
@@ -16,10 +17,13 @@ async def startup_event():
 def home():
     return {"message": "Salon AI Bot is running"}
 
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
 
 from fastapi import Request
 
-VERIFY_TOKEN = "salon_bot_123"
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
 
 @app.get("/webhook")
@@ -39,6 +43,9 @@ async def webhook(request: Request):
 
     # WhatsApp se aaya hua data read karte hain
     body = await request.json()
+
+    user_number = "UNKNOWN"
+    user_message = "UNKNOWN"
 
     # Agar payload me messages nahi hai to ye read/delivered/status event hai isko ignore kar do
     if "messages" not in body["entry"][0]["changes"][0]["value"]:
