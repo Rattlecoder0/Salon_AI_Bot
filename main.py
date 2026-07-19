@@ -1,8 +1,11 @@
+import json
 from fastapi import FastAPI
 from salon_flow import handle_message
 from processed_messages import is_processed, mark_processed
 from logger_config import log_event, logger
 from dotenv import load_dotenv
+from database.database import create_tables
+from database.seed_database import seed_database
 import os
 
 app = FastAPI()
@@ -10,6 +13,8 @@ load_dotenv()
 
 @app.on_event("startup")
 async def startup_event():
+    create_tables()
+    seed_database()
     log_event("BOT_STARTED")
 
 
@@ -43,6 +48,10 @@ async def webhook(request: Request):
 
     # WhatsApp se aaya hua data read karte hain
     body = await request.json()
+
+    print("========== WEBHOOK BODY ==========")
+    print(json.dumps(body, indent=2))
+    print("==================================")
 
     user_number = "UNKNOWN"
     user_message = "UNKNOWN"
