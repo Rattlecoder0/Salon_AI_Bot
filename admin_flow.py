@@ -1,8 +1,9 @@
+from services.notification_service import notify_queue_progress
 from whatsapp import send_whatsapp_message
 from admin_service import get_admin_info, get_next_walkin_name
 from logger_config import log_event
 from queue_service import (
-    has_active_queue,
+    has_active_customer,
     join_queue,
     complete_next_customer,
     is_queue_open,
@@ -11,8 +12,8 @@ from queue_service import (
     get_queue_summary,
     should_auto_close_queue,
     get_today_summary,
-    update_customer_history,
 )
+from services.history_service import update_customer_history_service
 
 
 def handle_admin_message(user_number, user_message):
@@ -27,16 +28,15 @@ def handle_admin_message(user_number, user_message):
 
     queue_status = "OPEN" if is_queue_open() else "CLOSED"
 
-    stats = get_queue_summary(admin["stylist"])
+    stats = get_queue_summary(admin["name"])
     waiting_count = stats["waiting"]
-
 
     # =========================
     # QUEUE CLOSED CHECK
     # =========================
     if not is_queue_open():
 
-        active_queue = has_active_queue(admin["stylist"])
+        active_queue = has_active_customer(admin["name"])
 
         # =========================
         # HEAD ADMIN
@@ -94,13 +94,13 @@ def handle_admin_message(user_number, user_message):
                         "1. Daily Report",
                     )
                 return
-            
+
     # =========================
     # VALIDATE CLOSED MENU
     # =========================
     if not is_queue_open():
 
-        active_queue = has_active_queue(admin["stylist"])
+        active_queue = has_active_customer(admin["name"])
 
         # Head Admin
         if admin["role"] == "HEAD_ADMIN":
@@ -109,20 +109,14 @@ def handle_admin_message(user_number, user_message):
 
                 if user_message.lower() not in allowed:
 
-                    send_whatsapp_message(
-                        user_number,
-                        "Please select 1, 2 or 3."
-                    )
+                    send_whatsapp_message(user_number, "Please select 1, 2 or 3.")
                     return
             else:
                 allowed = ["1", "2", "hi", "hello", "hey", "hii"]
 
                 if user_message.lower() not in allowed:
 
-                    send_whatsapp_message(
-                        user_number,
-                        "Please select 1 or 2."
-                    )
+                    send_whatsapp_message(user_number, "Please select 1 or 2.")
                     return
 
         # Normal Admin
@@ -132,10 +126,7 @@ def handle_admin_message(user_number, user_message):
 
                 if user_message.lower() not in allowed:
 
-                    send_whatsapp_message(
-                        user_number,
-                        "Please select 1 or 2."
-                    )
+                    send_whatsapp_message(user_number, "Please select 1 or 2.")
                     return
 
             else:
@@ -143,10 +134,7 @@ def handle_admin_message(user_number, user_message):
 
                 if user_message.lower() not in allowed:
 
-                    send_whatsapp_message(
-                        user_number,
-                        "Please select 1."
-                    )
+                    send_whatsapp_message(user_number, "Please select 1.")
                     return
 
     # =========================
@@ -154,7 +142,7 @@ def handle_admin_message(user_number, user_message):
     # =========================
     if not is_queue_open():
 
-        active_queue = has_active_queue(admin["stylist"])
+        active_queue = has_active_customer(admin["name"])
 
         # Head Admin
         if admin["role"] == "HEAD_ADMIN":
@@ -204,7 +192,7 @@ def handle_admin_message(user_number, user_message):
         result = join_queue(
             customer_name=walkin_name,
             phone_number="-",
-            stylist=admin["stylist"],
+            stylist=admin["name"],
             service="Haircut",
             customer_type="WALKIN",
         )
@@ -212,14 +200,14 @@ def handle_admin_message(user_number, user_message):
         log_event(
             "WALKIN_ADDED",
             NAME=walkin_name,
-            STYLIST=admin["stylist"],
+            STYLIST=admin["name"],
             TOKEN=result["stylist_token"],
         )
 
         send_whatsapp_message(
             user_number,
             f"Walk-In Customer Added ✅\n\n"
-            f"Stylist: {admin['stylist']}\n"
+            f"Stylist: {admin['name']}\n"
             f"Token: #{result['stylist_token']}",
         )
 
@@ -229,7 +217,7 @@ def handle_admin_message(user_number, user_message):
     # NEXT CUSTOMER
     # =========================
     if user_message == "2":
-        result = complete_next_customer(admin["stylist"])
+        result = complete_next_customer(admin["name"])
 
         # Queue me koi customer nahi
         if not result:
@@ -245,7 +233,7 @@ def handle_admin_message(user_number, user_message):
                 "CUSTOMER_COMPLETED",
                 PHONE=result["completed_customer_phone"],
                 NAME=completed_customer,
-                STYLIST=admin["stylist"],
+                STYLIST=admin["name"],
                 TOKEN=result["completed_customer_token"],
                 TYPE=result["completed_customer_type"],
             )
@@ -255,7 +243,7 @@ def handle_admin_message(user_number, user_message):
                 "NEXT_CUSTOMER_STARTED",
                 PHONE=result["next_customer_phone"],
                 NAME=result["next_customer"],
-                STYLIST=admin["stylist"],
+                STYLIST=admin["name"],
                 TOKEN=result["next_customer_token"],
                 TYPE=result["next_customer_type"],
             )
@@ -266,10 +254,10 @@ def handle_admin_message(user_number, user_message):
             and result["completed_customer_phone"] != "-"
         ):
 
-            update_customer_history(
+            update_customer_history_service(
                 phone_number=result["completed_customer_phone"],
                 customer_name=result["completed_customer"],
-                stylist=admin["stylist"],
+                stylist=admin["name"],
             )
 
         # =========================
@@ -315,6 +303,8 @@ def handle_admin_message(user_number, user_message):
                 "⚡ Agla aapka number hai.\n\n" "Kripya salon ki taraf nikal jaiye.",
             )
 
+        notify_queue_progress(admin["name"])
+
         # Next customer available hai
         if result["next_customer"]:
 
@@ -327,12 +317,9 @@ def handle_admin_message(user_number, user_message):
 
         # Queue khatam
         else:
-
             send_whatsapp_message(
                 user_number,
-                f"Customer Completed ✅\n\n"
-                f"Customer: {completed_customer}\n\n"
-                f"Queue Empty 🎉",
+                f"Queue is Empty 🎉",
             )
 
         return
@@ -342,13 +329,13 @@ def handle_admin_message(user_number, user_message):
     # =========================
     if user_message == "3":
 
-        report = get_today_summary(admin["stylist"])
+        report = get_today_summary(admin["name"])
 
         log_event(
             "DAILY_REPORT_VIEWED",
             ADMIN=admin["name"],
             ROLE=admin["role"],
-            STYLIST=admin["stylist"],
+            STYLIST=admin["name"],
         )
 
         send_whatsapp_message(
@@ -365,9 +352,7 @@ def handle_admin_message(user_number, user_message):
     # =========================
     # OPEN QUEUE
     # =========================
-    if admin["role"] == "HEAD_ADMIN" and (
-        user_message == "4" or user_message == "OPEN_QUEUE"
-    ):
+    if admin["role"] == "HEAD_ADMIN" and user_message == "OPEN_QUEUE":
 
         if is_queue_open():
             send_whatsapp_message(user_number, "Queue is already open.")
@@ -388,7 +373,7 @@ def handle_admin_message(user_number, user_message):
     # =========================
     # CLOSE QUEUE
     # =========================
-    if admin["role"] == "HEAD_ADMIN" and user_message == "5":
+    if admin["role"] == "HEAD_ADMIN" and user_message == "4":
 
         if not is_queue_open():
             send_whatsapp_message(user_number, "Queue is already closed.")
@@ -419,10 +404,8 @@ def handle_admin_message(user_number, user_message):
             "1. Add walkin customer\n"
             "2. Next customer\n"
             "3. Daily Report\n"
-            "4. Open queue\n"
-            "5. Close queue",
+            "4. Close queue",
         )
-
         return
 
     # =========================

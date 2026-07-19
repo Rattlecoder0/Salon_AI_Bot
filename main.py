@@ -2,9 +2,10 @@ from fastapi import FastAPI
 from salon_flow import handle_message
 from processed_messages import is_processed, mark_processed
 from logger_config import log_event, logger
+from dotenv import load_dotenv
 
 app = FastAPI()
-
+load_dotenv()
 
 @app.on_event("startup")
 async def startup_event():
@@ -39,9 +40,6 @@ async def webhook(request: Request):
     # WhatsApp se aaya hua data read karte hain
     body = await request.json()
 
-    print("MESSAGE RECEIVED:")
-    # print(body)
-
     # Agar payload me messages nahi hai to ye read/delivered/status event hai isko ignore kar do
     if "messages" not in body["entry"][0]["changes"][0]["value"]:
 
@@ -61,16 +59,9 @@ async def webhook(request: Request):
 
         # Duplicate webhook ignore karo
         if is_processed(message_id):
-
-            print(f"DUPLICATE MESSAGE IGNORED: {message_id}")
-
             return {"status": "ignored"}
 
         mark_processed(message_id)
-
-        print(f"MESSAGE ID: {message_id}")
-        print(f"User Number: {user_number}")
-        print(f"Message: {user_message}")
 
         # Auto reply
         handle_message(user_number, user_message)
@@ -85,14 +76,4 @@ async def webhook(request: Request):
     return {"status": "ok"}
 
 
-# Environment variables ke liye
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-# User kis stage par hai usko store karne ke liye
-# Example:
-# {
-#   "919999999999": "MAIN_MENU"
-# }
 user_states = {}

@@ -14,3 +14,6 @@ def set_customer_data(user_number, key, value):
         customer_data[user_number] = {}
 
     customer_data[user_number][key] = value
+
+def clear_customer_data(user_number):
+    customer_data.pop(user_number, None)

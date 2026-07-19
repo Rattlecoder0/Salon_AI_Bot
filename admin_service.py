@@ -1,73 +1,59 @@
-from google_sheets import get_sheet
+from repository.admin_repository import (
+    get_admin_by_phone,
+    get_admin_by_name,
+)
+from repository.queue_repository import get_walkin_count
+from threading import Lock
 
 admins_cache = None
+admin_locks = {}
 
 # Get admin information
 def get_admin_info(phone_number):
 
-    global admins_cache
+    admin = get_admin_by_phone(phone_number)
 
-    # Load admins only once
-    if admins_cache is None:
+    if not admin:
+        return None
 
-        sheet = get_sheet("Admins")
-        admins_cache = sheet.get_all_records()
-
-    # Find matching admin
-    for row in admins_cache:
-
-        if str(row["Phone Number"]) == str(phone_number):
-
-            return {
-                "name": row["Name"],
-                "role": row["Role"],
-                "stylist": row["Stylist"],
-            }
-
-    return None
+    return {
+        "name": admin.name,
+        "role": admin.role,
+    }
 
 
 def is_admin(phone_number):
 
-    # Phone number se admin details check karo
-    admin = get_admin_info(phone_number)
-
-    # Agar admin exist karta hai
-    if admin:
-        return True
-
-    # Nahi mila to normal customer
-    return False
+    return get_admin_by_phone(phone_number) is not None
 
 
+# Get next walk-in customer name
 def get_next_walkin_name():
 
-    # Queue sheet kholo
-    sheet = get_sheet("Queue")
+    walkin_count = get_walkin_count()
 
-    # Saara queue data lao
-    rows = sheet.get_all_records()
-
-    walkin_count = 0
-
-    # Existing walk-in customers count karo
-    for row in rows:
-
-        if row["Customer Type"] == "WALKIN":
-
-            walkin_count += 1
-
-    # Next walk-in name return karo
     return f"Walk-In {walkin_count + 1}"
 
 
 # Stylist ka admin number lao
-def get_admin_number_by_stylist(stylist):
-    sheet = get_sheet("Admins")
-    rows = sheet.get_all_records()
+def get_admin_number_by_name(name):
 
-    for row in rows:
-        if row["Stylist"] == stylist:
-            return str(row["Phone Number"])
+    admin = get_admin_by_name(name)
+
+    if admin:
+        return admin.phone_number
 
     return None
+
+def acquire_admin_lock(phone_number):
+
+    if phone_number not in admin_locks:
+        admin_locks[phone_number] = Lock()
+
+    return admin_locks[phone_number].acquire(blocking=False)
+
+
+def release_admin_lock(phone_number):
+
+    if phone_number in admin_locks:
+        admin_locks[phone_number].release()

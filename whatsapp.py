@@ -25,10 +25,3 @@ def send_whatsapp_message(to_number, message_text):
 
     print("WhatsApp API Response:")
     print(response.text)
-
-# def send_whatsapp_message(phone_number, message):
-
-#     print("\n====================")
-#     print(f"TO: {phone_number}")
-#     print(message)
-#     print("====================\n")

@@ -1,8 +1,8 @@
-from admin_service import get_admin_number_by_stylist
+from admin_service import get_admin_number_by_name
 from whatsapp import send_whatsapp_message
 from states import get_state, set_state
-from google_sheets import get_active_staff
-from customer_data import get_customer_data, set_customer_data
+from staff_service import get_active_staff
+from customer_data import get_customer_data, set_customer_data, clear_customer_data
 from queue_service import (
     can_join_queue,
     join_queue,
@@ -11,7 +11,8 @@ from queue_service import (
     is_queue_open,
     leave_queue,
     is_joining_allowed,
-    get_services
+    get_services,
+    get_total_queue_count
 )
 from admin_service import is_admin  # Admin detection ke liye
 from admin_flow import handle_admin_message  # Admin flow handler
@@ -22,7 +23,6 @@ def handle_message(user_number, user_message):
 
     # User ki current conversation state
     current_state = get_state(user_number)
-    print(f"Current State: {current_state}")
 
     # ==================================
     # ADMIN ROUTING
@@ -30,8 +30,6 @@ def handle_message(user_number, user_message):
 
     # Check karo user admin hai ya nahi
     if is_admin(user_number):
-        print("ADMIN DETECTED")
-
         handle_admin_message(user_number, user_message)
         return
 
@@ -64,6 +62,9 @@ def handle_message(user_number, user_message):
                 "Queue Left ✅\n\n"
                 "Aapko queue se remove kar diya gaya hai."
             )
+            
+            clear_customer_data(user_number)
+            set_state(user_number, "START")
 
             return        
 
@@ -109,10 +110,13 @@ def handle_message(user_number, user_message):
 
             return
 
-        # Queue open hai
+        # Queue is open
+        queue_count = get_total_queue_count()
+
         send_whatsapp_message(
             user_number,
-            "Welcome to Adarsh Hair Salon 👋\n\n"
+            f"Welcome to Adarsh Hair Salon 👋\n\n"
+            f"People in Queue: {queue_count}\n\n"
             "1. Join Queue\n"
             "2. Price List\n"
             "3. Working Hours",
@@ -126,9 +130,7 @@ def handle_message(user_number, user_message):
     # MAIN MENU
     # =========================
     if current_state == "MAIN_MENU":
-        print("MAIN MENU ENTERED")
-        print(f"Message = {user_message}")
-
+    
         if user_message == "1":
 
             # Check if online joining is allowed
@@ -143,9 +145,16 @@ def handle_message(user_number, user_message):
 
                 return
 
+            services = get_services()
+
+            message = "Select Service ✂️\n\n"
+
+            for index, service in enumerate(services, start=1):
+                message += f"{index}. {service['Service']}\n"
+
             send_whatsapp_message(
                 user_number,
-                "Select Service ✂️\n\n" "1. Haircut\n" "2. Beard\n" "3. Hair Spa",
+                message,
             )
 
             set_state(user_number, "WAITING_FOR_SERVICE")
@@ -168,16 +177,19 @@ def handle_message(user_number, user_message):
 
             send_whatsapp_message(user_number, message)
 
+            set_state(user_number, "START")
+
             return
 
         elif user_message == "3":
 
             send_whatsapp_message(user_number, "Working Hours 🕒\n\n" "10 AM - 8 PM")
 
+            set_state(user_number, "START")
+
             return
 
         else:
-
             send_whatsapp_message(user_number, "Please select 1, 2 or 3.")
 
             return
@@ -228,7 +240,7 @@ def handle_message(user_number, user_message):
     # IN QUEUE
     # =========================
     if current_state == "IN_QUEUE":
-        print("🔥 IN_QUEUE BLOCK ENTERED 🔥")
+    
         # Customer queue leave karna chahta hai
         if user_message == "1":
 
@@ -286,20 +298,24 @@ def handle_message(user_number, user_message):
     # SERVICE SELECTION
     # =========================
     if current_state == "WAITING_FOR_SERVICE":
+        services = get_services()
 
-        service_map = {"1": "Haircut", "2": "Beard", "3": "Hair Spa"}
+        try:
+            selected_index = int(user_message) - 1
 
-        service = service_map.get(user_message)
+            service = services[selected_index]["Service"]
 
-        if not service:
-
-            send_whatsapp_message(user_number, "Please select 1, 2 or 3.")
+        except:
+            send_whatsapp_message(
+                user_number,
+                "Please select a valid service number."
+            )
             return
 
-        # Service save karo
+        # Save service
         set_customer_data(user_number, "service", service)
 
-        # Active staff Google Sheet se lao
+        # Bring active staff from google sheet
         staff_list = get_active_staff()
 
         staff_message = "Select Stylist ✂️\n\n"
@@ -348,9 +364,6 @@ def handle_message(user_number, user_message):
     # =========================
     if current_state == "WAITING_FOR_NAME":
 
-        # Customer ka naam save karo
-        set_customer_data(user_number, "name", user_message)
-
         # Customer data lao
         data = get_customer_data(user_number)
 
@@ -385,11 +398,19 @@ def handle_message(user_number, user_message):
                     f"People Ahead: {info['people_ahead']}\n"
                     f"Estimated Wait: {info['estimated_wait']} min",
                 )
+                set_state(user_number, "IN_QUEUE")
                 return
 
             # Queue band hai ya koi aur reason
             send_whatsapp_message(user_number, queue_check["message"])
+            clear_customer_data(user_number)
+            set_state(user_number, "START")
+
             return
+        
+        # Customer ka naam save karo
+        set_customer_data(user_number, "name", user_message)
+        data = get_customer_data(user_number)
 
         # Customer ko queue me add karo
         result = join_queue(
@@ -436,11 +457,11 @@ def handle_message(user_number, user_message):
         # =========================
         # Admin Notification
         # =========================
-        admin_number = get_admin_number_by_stylist(
+        admin_number = get_admin_number_by_name(
             data["staff"]
         )
 
-        print(f"ADMIN NUMBER FOUND: {admin_number}")
+    
 
         if admin_number:
             send_whatsapp_message(
@@ -461,7 +482,7 @@ def handle_message(user_number, user_message):
                 "Kripya salon ki taraf nikal jaiye."
             )
 
-        elif info["people_ahead"] == 1:
+        elif info["people_ahead"] == 0:
             send_whatsapp_message(
                 user_number,
                 "⚡ Agla aapka number hai.\n\n"
@@ -470,8 +491,4 @@ def handle_message(user_number, user_message):
 
         # Customer queue me hai
         set_state(user_number, "IN_QUEUE")
-        print("SETTING STATE TO IN_QUEUE")
-
-        print(f"STATE AFTER SET: {get_state(user_number)}")
-
         return
